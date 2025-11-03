@@ -1,14 +1,52 @@
 /**
  * HashTable.h
  */
+#pragma once
 
 #include <string>
+#include <vector>
+#include <optional>
 #include <ostream>
 #include <cstddef>
 
 enum class BucketType { NORMAL, ESS, EAR };
 
-class HashTableBucket {};
+class HashTableBucket
+{
+    public:
+    //constructors
+    HashTableBucket();
+    HashTableBucket(const std::string& key, const size_t& value);
+
+    //load bucket with key/value and mark occupied
+    void load(const std::string& key, const size_t& value);
+
+    //all true/false checkers
+    bool isEmpty() const;
+    bool isEmptySinceStart() const;
+    bool isEmptyAfterRemove() const;
+
+    //bucket type setters
+    void makeESS();
+    void makeEAR();
+
+    //gets read only refs to key/value
+    const std::string& getKey() const;
+    const size_t& getValue() const;
+
+    //get modifiable ref for value
+    size_t& getValue();
+
+    BucketType getType() const;
+
+    friend std::ostream& operator<<(std::ostream& os, const HashTableBucket& bucket);
+
+    private:
+    std::string key{};
+    size_t value{};
+    BucketType state{BucketType::ESS};
+
+};
 
 class HashTable
 {
