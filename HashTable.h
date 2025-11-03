@@ -1,5 +1,6 @@
 /**
  * HashTable.h
+ * Name: Carter Chinn
  */
 #pragma once
 
