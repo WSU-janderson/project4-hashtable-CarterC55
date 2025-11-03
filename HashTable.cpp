@@ -77,15 +77,54 @@ std::ostream& operator<<(std::ostream& os, const HashTableBucket& bucket)
 HashTable::HashTable(size_t initCapacity): tableData(initCapacity), offsets(), numItems(0) {initOffsets(initCapacity);}
 
 bool HashTable::insert(const std::string& key, const size_t& value) {}
-bool HashTable::remove(const std::string& key) {}
+
+bool HashTable::remove(const std::string& key)
+{
+    size_t index = findIndex(key);
+    if (index == capacity())
+    {
+        return false;
+    }
+    tableData[index].makeEAR();
+    if (numItems > 0)
+    {
+        numItems--;
+    }
+    return true;
+}
+
 bool HashTable::contains(const std::string& key) const
 {
     return findIndex(key) != capacity();
 }
 
-std::optional<size_t> HashTable::get(const std::string& key) const {}
-size_t& HashTable::operator[](const std::string& key) {}
-std::vector<std::string> HashTable::keys() const {}
+std::optional<size_t> HashTable::get(const std::string& key) const
+{
+    size_t index = findIndex(key);
+    if (index == capacity())
+    {
+        return std::nullopt;
+    }
+    return tableData[index].getValue();
+}
+size_t& HashTable::operator[](const std::string& key)
+{
+    size_t index = findIndex(key);
+    return tableData[index].getValue();
+}
+std::vector<std::string> HashTable::keys() const
+{
+    std::vector<std::string> result;
+    result.reserve(numItems);
+    for (const auto& bucket : tableData)
+    {
+        if (bucket.getType() == BucketType::NORMAL)
+        {
+            result.push_back(bucket.getKey());
+        }
+    }
+    return result;
+}
 
 double HashTable::alpha() const
 {
@@ -101,7 +140,18 @@ size_t HashTable::size() const
     return numItems;
 }
 
-std::ostream& operator<<(std::ostream& os, const HashTable& hashTable) {}
+std::ostream& operator<<(std::ostream& os, const HashTable& hashTable)
+{
+    for (size_t i = 0; i < hashTable.capacity(); i++)
+    {
+        const HashTableBucket& bucket = hashTable.tableData[i];
+        if (bucket.getType() == BucketType::NORMAL)
+        {
+            os << "Bucket " << i << ": <" << bucket.getKey() << ", " << bucket.getValue() << ">\n";
+        }
+    }
+    return os;
+}
 
 //helpers
 size_t HashTable::hash(const std::string& key) const
