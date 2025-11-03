@@ -15,24 +15,63 @@
 HashTableBucket::HashTableBucket(): key(), value(0), state(BucketType::ESS) {}
 HashTableBucket::HashTableBucket(const std::string& key, const size_t& value): key(key), value(value), state(BucketType::NORMAL) {}
 
-void HashTableBucket::load(const std::string& key, const size_t& value) {}
+void HashTableBucket::load(const std::string& key, const size_t& value)
+{
+    this->key = key;
+    this->value = value;
+    state = BucketType::NORMAL;
+}
 
-bool HashTableBucket::isEmpty() const {}
+bool HashTableBucket::isEmpty() const
+{
+    return state != BucketType::NORMAL;
+}
 
-bool HashTableBucket::isEmptySinceStart() const {}
+bool HashTableBucket::isEmptySinceStart() const
+{
+    return state == BucketType::ESS;
+}
 
-bool HashTableBucket::isEmptyAfterRemove() const {}
+bool HashTableBucket::isEmptyAfterRemove() const
+{
+    return state == BucketType::EAR;
+}
 
-void HashTableBucket::makeESS() {}
-void HashTableBucket::makeEAR() {}
+void HashTableBucket::makeESS()
+{
+    state = BucketType::ESS;
+}
+void HashTableBucket::makeEAR()
+{
+    state = BucketType::EAR;
+}
 
-const std::string& HashTableBucket::getKey() const {}
-const size_t& HashTableBucket::getValue() const {}
-size_t& HashTableBucket::getValue() {}
+const std::string& HashTableBucket::getKey() const
+{
+    return key;
+}
+const size_t& HashTableBucket::getValue() const
+{
+    return value;
+}
+size_t& HashTableBucket::getValue()
+{
+    return value;
+}
 
-BucketType HashTableBucket::getType() const {}
+BucketType HashTableBucket::getType() const
+{
+    return state;
+}
 
-std::ostream& operator<<(std::ostream& os, const HashTableBucket& bucket) {}
+std::ostream& operator<<(std::ostream& os, const HashTableBucket& bucket)
+{
+    if (bucket.state == BucketType::NORMAL)
+    {
+        os << "<" << bucket.key << ", " << bucket.value << ">";
+    }
+    return os;
+}
 
 //HashTable
 HashTable::HashTable(size_t initCapacity): tableData(initCapacity), offsets(), numItems(0) {initOffsets(initCapacity);}
