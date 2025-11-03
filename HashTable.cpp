@@ -10,6 +10,7 @@
 
 #include <functional>
 #include <random>
+#include <algorithm>
 
 //HashTableBucket
 HashTableBucket::HashTableBucket(): key(), value(0), state(BucketType::ESS) {}
@@ -76,7 +77,81 @@ std::ostream& operator<<(std::ostream& os, const HashTableBucket& bucket)
 //HashTable
 HashTable::HashTable(size_t initCapacity): tableData(initCapacity), offsets(), numItems(0) {initOffsets(initCapacity);}
 
-bool HashTable::insert(const std::string& key, const size_t& value) {}
+bool HashTable::insert(const std::string& key, const size_t& value)
+{
+    //no dupes
+    if (contains(key))
+    {
+        return false;
+    }
+
+    resizeIfNeeded();
+
+    size_t N = capacity();
+    if (N == 0)
+    {
+        rehash(1);
+        N = capacity();
+    }
+
+    size_t home = hash(key) % N;
+    size_t firstEAR = N;
+
+    for (size_t step = 0; step < N; step++)
+    {
+        size_t index;
+        if (step == 0)
+        {
+            index = home;
+        }
+        else
+        {
+            index = (home + offsets[step - 1]) % N;
+        }
+
+        HashTableBucket& bucket = tableData[index];
+        BucketType type = bucket.getType();
+
+        if (type == BucketType::NORMAL)
+        {
+            continue;
+        }
+        else if (type == BucketType::EAR)
+        {
+            if (firstEAR == N)
+            {
+                firstEAR = index;
+            }
+        }
+        else //ESS
+        {
+            size_t target;
+            if (firstEAR != N)
+            {
+                target = firstEAR;
+            }
+            else
+            {
+                target = index;
+            }
+
+            tableData[target].load(key,value);
+            numItems++;
+            return true;
+        }
+    }
+
+    if (firstEAR != N)
+    {
+        tableData[firstEAR].load(key,value);
+        numItems++;
+        return true;
+    }
+
+    //full table
+    rehash(N * 2);
+    return insert(key, value);
+}
 
 bool HashTable::remove(const std::string& key)
 {
@@ -189,7 +264,7 @@ size_t HashTable::findIndex(const std::string& key) const
             }
         } else if (type == BucketType::ESS)
         {
-            return N;
+            return N; //never hit used bucked
         }
     }
     return N; //not found in table
@@ -225,7 +300,7 @@ void HashTable::initOffsets(size_t N)
     if (N <= 1) return;
 
     offsets.reserve(N-1);
-    for (size_t i = 1; i <= N; i++)
+    for (size_t i = 1; i < N; i++)
     {
         offsets.push_back(i);
     }
